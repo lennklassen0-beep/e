@@ -91,6 +91,11 @@ async def monitor_friends():
             lost = {fid: fname for fid, fname in known_friends.items()
                     if fid not in current_friends}
 
+            lost   = {fid: fname for fid, fname in known_friends.items()
+                      if fid not in current_friends}
+            gained = {fid: fname for fid, fname in current_friends.items()
+                      if fid not in known_friends}
+
             for fid, fname in lost.items():
                 profile_url = f"https://www.roblox.com/users/{fid}/profile"
                 embed = discord.Embed(
@@ -103,13 +108,31 @@ async def monitor_friends():
                     timestamp = datetime.utcnow(),
                 )
                 embed.set_footer(text="Roblox Friend Tracker")
-                embed.add_field(name="Removed User", value=fname,     inline=True)
-                embed.add_field(name="Roblox ID",    value=str(fid),  inline=True)
+                embed.add_field(name="Removed User", value=fname,       inline=True)
+                embed.add_field(name="Roblox ID",    value=str(fid),    inline=True)
                 embed.add_field(name="Profile",      value=profile_url, inline=False)
                 await channel.send(embed=embed)
                 print(f"[ALERT] Lost friend: {fname} (ID {fid})")
 
-            if lost:
+            for fid, fname in gained.items():
+                profile_url = f"https://www.roblox.com/users/{fid}/profile"
+                embed = discord.Embed(
+                    title       = "✅ Friend Added",
+                    description = (
+                        f"**{ROBLOX_USERNAME}** is now friends with **{fname}**\n"
+                        f"[View Profile]({profile_url})"
+                    ),
+                    color     = 0x43B581,
+                    timestamp = datetime.utcnow(),
+                )
+                embed.set_footer(text="Roblox Friend Tracker")
+                embed.add_field(name="Added User", value=fname,       inline=True)
+                embed.add_field(name="Roblox ID",  value=str(fid),    inline=True)
+                embed.add_field(name="Profile",    value=profile_url, inline=False)
+                await channel.send(embed=embed)
+                print(f"[ALERT] New friend: {fname} (ID {fid})")
+
+            if lost or gained:
                 known_friends = current_friends
                 save_cache(known_friends)
 
